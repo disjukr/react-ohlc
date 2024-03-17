@@ -58,9 +58,9 @@ function Col(props: ColProps) {
 
 export default React.memo(Col);
 
-function ColAxis() {
+const ColAxis = React.memo(function ColAxis() {
   const { rowAxisWidthAtom } = useMolecule(ColMolecule);
   const rowAxisWidth = useAtomValue(rowAxisWidthAtom);
   const width = `${rowAxisWidth}px`;
   return <div style={{ width }}>TODO: time axis</div>;
-}
+});

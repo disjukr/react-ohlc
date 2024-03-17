@@ -61,7 +61,7 @@ function Row(props: RowProps) {
 
 export default React.memo(Row);
 
-function RowCanvasLayer() {
+const RowCanvasLayer = React.memo(function RowCanvasLayer() {
   const { canvasInfoAtom } = useMolecule(RowMolecule);
   const setCanvasInfo = useSetAtom(canvasInfoAtom);
   const devicePixelRatioAtom = useMolecule(DevicePixelRatioMolecule);
@@ -85,11 +85,11 @@ function RowCanvasLayer() {
       <canvas ref={canvasRef} style={{ width: "100%", height: "100%" }} />
     </Layer>
   );
-}
+});
 
-function RowAxis() {
+const RowAxis = React.memo(function RowAxis() {
   const { rowAxisWidthAtom } = useMolecule(ColMolecule);
   const rowAxisWidth = useAtomValue(rowAxisWidthAtom);
   const flexBasis = `${rowAxisWidth}px`;
   return <div style={{ flexBasis }}>TODO: price axis</div>;
-}
+});
