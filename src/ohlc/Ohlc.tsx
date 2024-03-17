@@ -1,14 +1,14 @@
 import React from "react";
-import { atom } from "jotai";
 import { createScope, molecule, use } from "bunshi";
 
+import type { SymbolDataAtoms } from "./market-data";
 import type { ColProps } from "./Col";
 
 export const OhlcScope = createScope(undefined);
 export const OhlcMolecule = molecule(() => {
   use(OhlcScope);
-  const anAtom = atom<number>(0);
-  return { anAtom };
+  const symbolDataAtoms: SymbolDataAtoms = {};
+  return { symbolDataAtoms };
 });
 
 export interface OhlcProps extends React.HTMLAttributes<HTMLDivElement> {
