@@ -1,18 +1,37 @@
 import React from "react";
 import { atom, useAtomValue } from "jotai";
 import { useSetAtom } from "jotai/react";
-import { createScope, molecule, use } from "bunshi";
+import { createScope, molecule, onMount, use } from "bunshi";
 import { ScopeProvider, useMolecule } from "bunshi/react";
 import useResizeObserver from "@react-hook/resize-observer";
 
-import { ColMolecule } from "./Col";
+import rafloop from "./misc/rafloop";
 import { Layers, Layer } from "./misc/layer";
 import { DevicePixelRatioMolecule } from "./misc/devicePixelRatio";
+import { ColMolecule } from "./Col";
 
-export const RowScope = createScope(undefined);
+const RowScope = createScope(undefined);
 
 export const RowMolecule = molecule(() => {
   use(RowScope);
+  const { chartDataAtom } = use(ColMolecule);
+  const rawDataAtom = atom((get) => {
+    const chartData = get(chartDataAtom);
+    return chartData?.raw;
+  });
+  const timestampsAtom = atom((get) => {
+    const rawData = get(rawDataAtom);
+    if (!rawData) return [];
+    return Object.keys(rawData).map(Number);
+  });
+  const minTimestampAtom = atom((get) => {
+    const timestamps = get(timestampsAtom);
+    return timestamps[0] ?? -Infinity;
+  });
+  const maxTimestampAtom = atom((get) => {
+    const timestamps = get(timestampsAtom);
+    return timestamps[timestamps.length - 1] ?? Infinity;
+  });
   interface CanvasInfo {
     canvas: HTMLCanvasElement;
     width: number;
@@ -31,6 +50,13 @@ export const RowMolecule = molecule(() => {
    * 세로축의 단위는 픽셀인데 여기에 얼마를 곱할지
    */
   const zoomAtom = atom(1);
+  onMount(() => {
+    const { start, stop } = rafloop(() => {
+      // TODO
+    });
+    start();
+    return stop;
+  });
   return { canvasInfoAtom, autoAtom, focusAtom, zoomAtom };
 });
 
