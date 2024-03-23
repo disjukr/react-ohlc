@@ -21,7 +21,7 @@ export const OhlcMolecule = molecule(() => {
         const chartData = store.get(chartDataAtom);
         store.set(chartDataAtom, {
           ...chartData,
-          raw: { ...chartData?.raw, ...raw },
+          raw: Object.assign(chartData.raw, raw),
           lastUpdated,
         });
       } else {

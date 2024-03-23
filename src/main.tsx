@@ -5,6 +5,7 @@ import { useMolecule } from "bunshi/react";
 import Ohlc, { OhlcMolecule } from "./ohlc/Ohlc";
 import Col from "./ohlc/Col";
 import Row from "./ohlc/Row";
+import Candlesticks from "./ohlc/indicators/Candlesticks";
 import mockdata from "./mockdata";
 
 function App() {
@@ -13,7 +14,9 @@ function App() {
   return (
     <Ohlc style={{ height: "500px", border: "1px solid black" }}>
       <Col symbolKey="mock" interval={60000}>
-        <Row />
+        <Row>
+          <Candlesticks />
+        </Row>
       </Col>
     </Ohlc>
   );

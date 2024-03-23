@@ -1,36 +1,29 @@
 import React from "react";
-import { atom, useAtomValue } from "jotai";
+import { atom, getDefaultStore, useAtomValue } from "jotai";
 import { useSetAtom } from "jotai/react";
-import { createScope, molecule, onMount, use } from "bunshi";
+import { createScope, molecule, onUnmount, use } from "bunshi";
 import { ScopeProvider, useMolecule } from "bunshi/react";
 import useResizeObserver from "@react-hook/resize-observer";
 
-import rafloop from "./misc/rafloop";
 import { Layers, Layer } from "./misc/layer";
 import { DevicePixelRatioMolecule } from "./misc/devicePixelRatio";
 import { ColMolecule } from "./Col";
+import { DrawFn, DrawOrderContext } from "./indicator";
 
 const RowScope = createScope(undefined);
 
 export const RowMolecule = molecule(() => {
   use(RowScope);
+  const store = getDefaultStore();
   const { chartDataAtom } = use(ColMolecule);
   const rawDataAtom = atom((get) => {
     const chartData = get(chartDataAtom);
     return chartData?.raw;
   });
-  const timestampsAtom = atom((get) => {
+  const readyToDrawAtom = atom((get) => {
     const rawData = get(rawDataAtom);
-    if (!rawData) return [];
-    return Object.keys(rawData).map(Number);
-  });
-  const minTimestampAtom = atom((get) => {
-    const timestamps = get(timestampsAtom);
-    return timestamps[0] ?? -Infinity;
-  });
-  const maxTimestampAtom = atom((get) => {
-    const timestamps = get(timestampsAtom);
-    return timestamps[timestamps.length - 1] ?? Infinity;
+    const canvasInfo = get(canvasInfoAtom);
+    return Boolean(rawData && canvasInfo);
   });
   interface CanvasInfo {
     canvas: HTMLCanvasElement;
@@ -50,14 +43,40 @@ export const RowMolecule = molecule(() => {
    * 세로축의 단위는 픽셀인데 여기에 얼마를 곱할지
    */
   const zoomAtom = atom(1);
-  onMount(() => {
-    const { start, stop } = rafloop(() => {
-      // TODO
-    });
-    start();
-    return stop;
+  let rafId: number | null = null;
+  const drawFns: (DrawFn | undefined)[] = [];
+  const clearDrawFns = () => void (drawFns.length = 0);
+  const updateDrawFn = (order: number, drawFn: DrawFn) => {
+    drawFns[order] = drawFn;
+    if (rafId == null) {
+      rafId = requestAnimationFrame(() => {
+        rafId = null;
+        const canvasInfo = store.get(canvasInfoAtom);
+        const ctx = canvasInfo?.canvas.getContext("2d");
+        if (!ctx) return;
+        // TODO: init ctx
+        ctx.reset();
+        for (const drawFn of drawFns) {
+          ctx.save();
+          drawFn?.(ctx);
+          ctx.restore();
+        }
+      });
+    }
+  };
+  onUnmount(() => {
+    if (rafId != null) cancelAnimationFrame(rafId);
   });
-  return { canvasInfoAtom, autoAtom, focusAtom, zoomAtom };
+  return {
+    rawDataAtom,
+    readyToDrawAtom,
+    canvasInfoAtom,
+    autoAtom,
+    focusAtom,
+    zoomAtom,
+    clearDrawFns,
+    updateDrawFn,
+  };
 });
 
 export interface RowProps extends React.HTMLAttributes<HTMLDivElement> {
@@ -75,10 +94,7 @@ function Row(props: RowProps) {
           flexDirection: "row",
         }}
       >
-        <Layers style={{ flex: "1 1 0" }}>
-          <RowCanvasLayer />
-          {props.children && <Layer>{props.children}</Layer>}
-        </Layers>
+        <RowLayers>{props.children}</RowLayers>
         <RowAxis />
       </div>
     </ScopeProvider>
@@ -86,6 +102,29 @@ function Row(props: RowProps) {
 }
 
 export default React.memo(Row);
+
+interface RowLayersProps {
+  children?: React.ReactElement | React.ReactElement[];
+}
+function RowLayers({ children }: RowLayersProps) {
+  const { readyToDrawAtom, clearDrawFns } = useMolecule(RowMolecule);
+  const readyToDraw = useAtomValue(readyToDrawAtom);
+  React.useLayoutEffect(clearDrawFns);
+  return (
+    <Layers style={{ flex: "1 1 0" }}>
+      <RowCanvasLayer />
+      {readyToDraw && (
+        <Layer>
+          {React.Children.map(children, (child, index) => (
+            <DrawOrderContext.Provider value={index}>
+              {child}
+            </DrawOrderContext.Provider>
+          ))}
+        </Layer>
+      )}
+    </Layers>
+  );
+}
 
 const RowCanvasLayer = React.memo(function RowCanvasLayer() {
   const { canvasInfoAtom } = useMolecule(RowMolecule);
@@ -105,7 +144,6 @@ const RowCanvasLayer = React.memo(function RowCanvasLayer() {
     canvas.height = height * devicePixelRatio;
     setCanvasInfo({ canvas, width, height });
   });
-  React.useEffect(() => setCanvasInfo(undefined), []);
   return (
     <Layer>
       <canvas ref={canvasRef} style={{ width: "100%", height: "100%" }} />
