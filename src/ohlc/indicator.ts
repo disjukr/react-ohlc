@@ -3,6 +3,7 @@ import { atom } from "jotai";
 import { molecule, use } from "bunshi";
 import { useMolecule } from "bunshi/react";
 
+import { ColMolecule } from "./Col";
 import { RowMolecule } from "./Row";
 
 export const DrawOrderContext = React.createContext(0);
@@ -16,23 +17,14 @@ export function useDraw(fn: DrawFn) {
 }
 
 export const IndicatorMolecule = molecule(() => {
-  const { rawDataAtom } = use(RowMolecule);
-  const timestampsAtom = atom((get) => {
-    const rawData = get(rawDataAtom);
-    if (!rawData) return [];
-    return Object.keys(rawData).map(Number);
-  });
-  const minTimestampAtom = atom((get) => {
-    const timestamps = get(timestampsAtom);
-    return timestamps[0] ?? -Infinity;
-  });
-  const maxTimestampAtom = atom((get) => {
-    const timestamps = get(timestampsAtom);
-    return timestamps[timestamps.length - 1] ?? Infinity;
+  const { chartDataAtom: colChartDataAtom } = use(ColMolecule);
+  // const { canvasInfoAtom } = use(RowMolecule);
+  const chartDataAtom = atom((get) => {
+    const chartData = get(colChartDataAtom);
+    if (chartData) return chartData;
+    throw new Error("At the indicator level, chart data must exist.");
   });
   return {
-    timestampsAtom,
-    minTimestampAtom,
-    maxTimestampAtom,
+    chartDataAtom,
   };
 });

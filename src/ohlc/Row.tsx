@@ -16,14 +16,10 @@ export const RowMolecule = molecule(() => {
   use(RowScope);
   const store = getDefaultStore();
   const { chartDataAtom } = use(ColMolecule);
-  const rawDataAtom = atom((get) => {
-    const chartData = get(chartDataAtom);
-    return chartData?.raw;
-  });
   const readyToDrawAtom = atom((get) => {
-    const rawData = get(rawDataAtom);
+    const chartData = get(chartDataAtom);
     const canvasInfo = get(canvasInfoAtom);
-    return Boolean(rawData && canvasInfo);
+    return Boolean(chartData && canvasInfo);
   });
   interface CanvasInfo {
     canvas: HTMLCanvasElement;
@@ -68,7 +64,6 @@ export const RowMolecule = molecule(() => {
     if (rafId != null) cancelAnimationFrame(rafId);
   });
   return {
-    rawDataAtom,
     readyToDrawAtom,
     canvasInfoAtom,
     autoAtom,

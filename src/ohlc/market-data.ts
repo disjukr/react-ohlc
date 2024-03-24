@@ -27,11 +27,45 @@ export interface ChartData {
    * key: 밀리초 타임스탬프, value: ohlc 값
    */
   raw: RawData;
+  minTimestamp: number;
+  maxTimestamp: number;
   /**
    * market data를 마지막으로 갱신한 시점의 `Date.now()`값
    * raw를 매번 새로만들지 않아도 MarketData atom을 구독할 수 있도록 하기위해 사용.
    */
   lastUpdated: number;
+}
+
+export function createChartData(interval: number, raw: RawData): ChartData {
+  return { interval, raw, ...getTimestampMinMax(raw), lastUpdated: Date.now() };
+}
+
+export function updateChartData(old: ChartData, raw: RawData): ChartData {
+  const lastUpdated = Date.now();
+  const newT = getTimestampMinMax(raw);
+  const minTimestamp =
+    newT.minTimestamp < old.minTimestamp ? newT.minTimestamp : old.minTimestamp;
+  const maxTimestamp =
+    newT.maxTimestamp > old.maxTimestamp ? newT.maxTimestamp : old.maxTimestamp;
+  return {
+    ...old,
+    raw: Object.assign(old.raw, raw),
+    minTimestamp,
+    maxTimestamp,
+    lastUpdated,
+  };
+}
+
+interface TimestampMinMax {
+  minTimestamp: number;
+  maxTimestamp: number;
+}
+function getTimestampMinMax(raw: RawData): TimestampMinMax {
+  const timestamps = Object.keys(raw).map(Number);
+  return {
+    minTimestamp: timestamps[0] ?? NaN,
+    maxTimestamp: timestamps[timestamps.length - 1] ?? NaN,
+  };
 }
 
 export class Data {

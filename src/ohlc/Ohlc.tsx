@@ -2,7 +2,13 @@ import React from "react";
 import { atom, getDefaultStore } from "jotai";
 import { createScope, molecule, use } from "bunshi";
 
-import type { RawData, SymbolData, SymbolDataAtoms } from "./market-data";
+import {
+  type RawData,
+  type SymbolData,
+  type SymbolDataAtoms,
+  updateChartData,
+  createChartData,
+} from "./market-data";
 import type { ColProps } from "./Col";
 
 export const OhlcScope = createScope(undefined);
@@ -11,29 +17,24 @@ export const OhlcMolecule = molecule(() => {
   const store = getDefaultStore();
   const symbolDataAtomsAtom = atom<SymbolDataAtoms>({});
   function upsertSymbolData(symbolKey: string, interval: number, raw: RawData) {
-    const lastUpdated = Date.now();
     const symbolDataAtoms = store.get(symbolDataAtomsAtom);
     const symbolDataAtom = symbolDataAtoms?.[symbolKey];
     if (symbolDataAtom) {
       const symbolData = store.get(symbolDataAtom);
       const chartDataAtom = symbolData?.chartDataAtoms?.[interval];
       if (chartDataAtom) {
-        const chartData = store.get(chartDataAtom);
-        store.set(chartDataAtom, {
-          ...chartData,
-          raw: Object.assign(chartData.raw, raw),
-          lastUpdated,
-        });
+        const old = store.get(chartDataAtom);
+        store.set(chartDataAtom, updateChartData(old, raw));
       } else {
         store.set(symbolDataAtom, {
-          chartDataAtoms: { [interval]: atom({ interval, raw, lastUpdated }) },
+          chartDataAtoms: { [interval]: atom(createChartData(interval, raw)) },
         });
       }
     } else {
       store.set(symbolDataAtomsAtom, {
         ...symbolDataAtoms,
         [symbolKey]: atom<SymbolData>({
-          chartDataAtoms: { [interval]: atom({ interval, raw, lastUpdated }) },
+          chartDataAtoms: { [interval]: atom(createChartData(interval, raw)) },
         }),
       });
     }
