@@ -17,8 +17,17 @@ export function useDraw(fn: DrawFn) {
 }
 
 export const IndicatorMolecule = molecule(() => {
-  const { chartDataAtom: colChartDataAtom } = use(ColMolecule);
-  const { canvasInfoAtom: rowCanvasInfoAtom } = use(RowMolecule);
+  const {
+    chartDataAtom: colChartDataAtom,
+    offsetAtom: colOffsetAtom,
+    zoomAtom: colZoomAtom,
+    dataWidthAtom,
+  } = use(ColMolecule);
+  const {
+    canvasInfoAtom: rowCanvasInfoAtom,
+    focusAtom: rowFocusAtom,
+    zoomAtom: rowZoomAtom,
+  } = use(RowMolecule);
   const chartDataAtom = atom((get) => {
     const chartData = get(colChartDataAtom);
     if (chartData) return chartData;
@@ -29,8 +38,29 @@ export const IndicatorMolecule = molecule(() => {
     if (canvasInfo) return canvasInfo;
     throw new Error("At the indicator level, canvas info must exist.");
   });
+  const toScreenXAtom = atom((get) => {
+    const chartData = get(chartDataAtom);
+    const { width } = get(canvasInfoAtom);
+    const offset = get(colOffsetAtom);
+    const zoom = get(colZoomAtom);
+    return function toScreenX(timestamp: number): number {
+      return (chartData.maxTimestamp + offset - timestamp) * -zoom + width;
+    };
+  });
+  const toScreenYAtom = atom((get) => {
+    const { height } = get(canvasInfoAtom);
+    const focus = get(rowFocusAtom);
+    const zoom = get(rowZoomAtom);
+    return function toScreenY(value: number): number {
+      const center = height / 2;
+      return (value - focus) * -zoom + center;
+    };
+  });
   return {
     chartDataAtom,
     canvasInfoAtom,
+    dataWidthAtom,
+    toScreenXAtom,
+    toScreenYAtom,
   };
 });

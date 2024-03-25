@@ -35,7 +35,7 @@ export const RowMolecule = molecule(() => {
   /**
    * 세로축의 중심이 가져야 할 값
    */
-  const focusAtom = atom(0);
+  const focusAtom = atom(42250);
   /**
    * 세로축의 단위는 픽셀인데 여기에 얼마를 곱할지
    */

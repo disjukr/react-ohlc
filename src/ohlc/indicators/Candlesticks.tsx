@@ -4,19 +4,33 @@ import { useMolecule } from "bunshi/react";
 import { IndicatorMolecule, useDraw } from "../indicator";
 
 export default function Candlesticks() {
-  const { chartDataAtom, canvasInfoAtom } = useMolecule(IndicatorMolecule);
+  const { chartDataAtom, dataWidthAtom, toScreenXAtom, toScreenYAtom } =
+    useMolecule(IndicatorMolecule);
   const chartData = useAtomValue(chartDataAtom);
-  const canvasInfo = useAtomValue(canvasInfoAtom);
+  const dataWidth = useAtomValue(dataWidthAtom);
+  const toScreenX = useAtomValue(toScreenXAtom);
+  const toScreenY = useAtomValue(toScreenYAtom);
   useDraw((ctx) => {
     const dataArray = Object.values(chartData.raw);
     for (let i = 0; i < dataArray.length; ++i) {
       const data = dataArray[i];
-      const y = (Math.min(data.open, data.close) - 40000) / 10;
-      const h = Math.max(1, Math.abs(data.close - data.open) / 10);
-      ctx.rect(i, y, 1, h);
+      const openY = toScreenY(data.open);
+      const highY = toScreenY(data.high);
+      const lowY = toScreenY(data.low);
+      const closeY = toScreenY(data.close);
+      const x = toScreenX(data.timestamp);
+      const y1 = Math.min(highY, lowY);
+      const h1 = Math.max(1, Math.abs(lowY - highY));
+      const y2 = Math.min(openY, closeY);
+      const h2 = Math.max(1, Math.abs(closeY - openY));
+      const gap = dataWidth / 4;
+      const halfWidth = (dataWidth - gap) / 2;
+      ctx.fillStyle = data.open < data.close ? "green" : "red";
+      ctx.beginPath();
+      ctx.rect((x + gap + halfWidth - 0.5) | 0, y1, 1, h1);
+      ctx.rect((x + gap) | 0, y2, (dataWidth - gap) | 0, h2);
+      ctx.fill();
     }
-    ctx.fill();
-    console.log({ ctx, chartData, canvasInfo });
   });
   return null;
 }
