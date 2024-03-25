@@ -18,13 +18,19 @@ export function useDraw(fn: DrawFn) {
 
 export const IndicatorMolecule = molecule(() => {
   const { chartDataAtom: colChartDataAtom } = use(ColMolecule);
-  // const { canvasInfoAtom } = use(RowMolecule);
+  const { canvasInfoAtom: rowCanvasInfoAtom } = use(RowMolecule);
   const chartDataAtom = atom((get) => {
     const chartData = get(colChartDataAtom);
     if (chartData) return chartData;
     throw new Error("At the indicator level, chart data must exist.");
   });
+  const canvasInfoAtom = atom((get) => {
+    const canvasInfo = get(rowCanvasInfoAtom);
+    if (canvasInfo) return canvasInfo;
+    throw new Error("At the indicator level, canvas info must exist.");
+  });
   return {
     chartDataAtom,
+    canvasInfoAtom,
   };
 });

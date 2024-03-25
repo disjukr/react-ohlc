@@ -15,6 +15,7 @@ const RowScope = createScope(undefined);
 export const RowMolecule = molecule(() => {
   use(RowScope);
   const store = getDefaultStore();
+  const devicePixelRatioAtom = use(DevicePixelRatioMolecule);
   const { chartDataAtom } = use(ColMolecule);
   const readyToDrawAtom = atom((get) => {
     const chartData = get(chartDataAtom);
@@ -50,8 +51,9 @@ export const RowMolecule = molecule(() => {
         const canvasInfo = store.get(canvasInfoAtom);
         const ctx = canvasInfo?.canvas.getContext("2d");
         if (!ctx) return;
-        // TODO: init ctx
+        const devicePixelRatio = store.get(devicePixelRatioAtom);
         ctx.reset();
+        ctx.scale(devicePixelRatio, devicePixelRatio);
         for (const drawFn of drawFns) {
           ctx.save();
           drawFn?.(ctx);
