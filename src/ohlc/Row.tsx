@@ -49,10 +49,12 @@ export const RowMolecule = molecule(() => {
       rafId = requestAnimationFrame(() => {
         rafId = null;
         const canvasInfo = store.get(canvasInfoAtom);
-        const ctx = canvasInfo?.canvas.getContext("2d");
-        if (!ctx) return;
+        if (!canvasInfo) return;
+        const { canvas, width, height } = canvasInfo;
         const devicePixelRatio = store.get(devicePixelRatioAtom);
-        ctx.reset();
+        canvas.width = width * devicePixelRatio;
+        canvas.height = height * devicePixelRatio;
+        const ctx = canvas.getContext("2d")!;
         ctx.scale(devicePixelRatio, devicePixelRatio);
         for (const drawFn of drawFns) {
           ctx.save();
@@ -126,19 +128,13 @@ function RowLayers({ children }: RowLayersProps) {
 const RowCanvasLayer = React.memo(function RowCanvasLayer() {
   const { canvasInfoAtom } = useMolecule(RowMolecule);
   const setCanvasInfo = useSetAtom(canvasInfoAtom);
-  const devicePixelRatioAtom = useMolecule(DevicePixelRatioMolecule);
-  const devicePixelRatio = useAtomValue(devicePixelRatioAtom);
   const canvasRef = React.useRef<HTMLCanvasElement>(null);
   // 처음 한 번은 무조건 불릴 것이라 기대할 수 있음
   // https://drafts.csswg.org/resize-observer/#ref-for-element%E2%91%A3
   // > Observation will fire when observation starts if Element is being rendered, and Element’s size is not 0,0.
-  useResizeObserver(canvasRef, ({ contentRect }) => {
+  useResizeObserver(canvasRef, ({ contentRect: { width, height } }) => {
     if (!canvasRef.current) return;
     const canvas = canvasRef.current;
-    const width = contentRect.width | 0;
-    const height = contentRect.height | 0;
-    canvas.width = width * devicePixelRatio;
-    canvas.height = height * devicePixelRatio;
     setCanvasInfo({ canvas, width, height });
   });
   return (
