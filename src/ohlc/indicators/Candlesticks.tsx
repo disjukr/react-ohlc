@@ -4,16 +4,28 @@ import { useMolecule } from "bunshi/react";
 import { IndicatorMolecule, useDraw } from "../indicator";
 
 export default function Candlesticks() {
-  const { chartDataAtom, dataWidthAtom, toScreenXAtom, toScreenYAtom } =
-    useMolecule(IndicatorMolecule);
+  const {
+    interval,
+    chartDataAtom,
+    dataWidthAtom,
+    toScreenXAtom,
+    toScreenYAtom,
+    minScreenTimestampAtom,
+    maxScreenTimestampAtom,
+  } = useMolecule(IndicatorMolecule);
   const chartData = useAtomValue(chartDataAtom);
   const dataWidth = useAtomValue(dataWidthAtom);
   const toScreenX = useAtomValue(toScreenXAtom);
   const toScreenY = useAtomValue(toScreenYAtom);
+  const minScreenTimestamp = useAtomValue(minScreenTimestampAtom);
+  const maxScreenTimestamp = useAtomValue(maxScreenTimestampAtom);
   useDraw((ctx) => {
-    const dataArray = Object.values(chartData.raw);
-    for (let i = 0; i < dataArray.length; ++i) {
-      const data = dataArray[i];
+    const start = Math.round(minScreenTimestamp / interval) - 1;
+    const end = Math.round(maxScreenTimestamp / interval) + 1;
+    for (let i = start; i < end; ++i) {
+      const timestamp = i * interval;
+      const data = chartData.raw[timestamp];
+      if (!data) continue;
       const openY = toScreenY(data.open);
       const highY = toScreenY(data.high);
       const lowY = toScreenY(data.low);
