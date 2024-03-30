@@ -32,7 +32,7 @@ export const ColMolecule = molecule(() => {
   /**
    * 가로축 기본 단위는 밀리초/픽셀 인데 여기에 얼마를 곱해서 볼건지.
    */
-  const zoomAtom = atom((1 / 1000 / 60) * 4);
+  const zoomAtom = atom((1 / interval) * 7);
   /**
    * 같은 Col 안의 모든 Row는 축 정보 영역의 가로폭 크기를 똑같이 가져가야 하기 때문에 가로폭 상태를 Col에서 관리함.
    */

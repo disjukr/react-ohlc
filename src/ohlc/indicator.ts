@@ -28,6 +28,9 @@ export const IndicatorMolecule = molecule(() => {
     canvasInfoAtom: rowCanvasInfoAtom,
     focusAtom: rowFocusAtom,
     zoomAtom: rowZoomAtom,
+    toTimestampAtom,
+    minScreenTimestampAtom,
+    maxScreenTimestampAtom,
   } = use(RowMolecule);
   const chartDataAtom = atom((get) => {
     const chartData = get(colChartDataAtom);
@@ -61,15 +64,6 @@ export const IndicatorMolecule = molecule(() => {
       return (value - focus) * -zoom + center;
     };
   });
-  const toTimestampAtom = atom((get) => {
-    const chartData = get(chartDataAtom);
-    const { width } = get(canvasInfoAtom);
-    const offset = get(colOffsetAtom);
-    const zoom = get(colZoomAtom);
-    return function toTimestamp(screenX: number): number {
-      return chartData.maxTimestamp + offset - (screenX - width) / -zoom;
-    };
-  });
   const toValueAtom = atom((get) => {
     const { height } = get(canvasInfoAtom);
     const focus = get(rowFocusAtom);
@@ -78,15 +72,6 @@ export const IndicatorMolecule = molecule(() => {
       const center = height / 2;
       return (screenY - center) / -zoom + focus;
     };
-  });
-  const minScreenTimestampAtom = atom((get) => {
-    const toTimestamp = get(toTimestampAtom);
-    return Math.ceil(toTimestamp(0) / interval) * interval;
-  });
-  const maxScreenTimestampAtom = atom((get) => {
-    const toTimestamp = get(toTimestampAtom);
-    const { width } = get(canvasInfoAtom);
-    return Math.ceil(toTimestamp(width) / interval) * interval;
   });
   return {
     symbolKey,

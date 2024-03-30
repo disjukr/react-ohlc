@@ -31,10 +31,10 @@ export default function Candlesticks() {
       const lowY = toScreenY(data.low);
       const closeY = toScreenY(data.close);
       const x = toScreenX(data.timestamp);
-      const y1 = Math.min(highY, lowY) | 0;
-      const h1 = Math.abs(lowY - highY) | 0;
-      const y2 = Math.min(openY, closeY) | 0;
-      const h2 = Math.max(1, Math.abs(closeY - openY) | 0);
+      const y1 = Math.round(Math.min(highY, lowY));
+      const h1 = Math.round(Math.abs(lowY - highY));
+      const y2 = Math.round(Math.min(openY, closeY));
+      const h2 = Math.max(1, Math.round(Math.abs(closeY - openY)));
       const gap = dataWidth / 4;
       const halfWidth = (dataWidth - gap) / 2;
       ctx.fillStyle = data.open < data.close ? "green" : "red";

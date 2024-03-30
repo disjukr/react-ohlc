@@ -5,10 +5,12 @@ import { createScope, molecule, onUnmount, use } from "bunshi";
 import { ScopeProvider, useMolecule } from "bunshi/react";
 import useResizeObserver from "@react-hook/resize-observer";
 
+import { lerp } from "./misc/interpolation";
 import { Layers, Layer } from "./misc/layer";
 import { DevicePixelRatioMolecule } from "./misc/devicePixelRatio";
+import type { Data } from "./market-data";
 import { ColMolecule } from "./Col";
-import { DrawFn, DrawOrderContext } from "./indicator";
+import { type DrawFn, DrawOrderContext } from "./indicator";
 
 const RowScope = createScope(undefined);
 
@@ -16,7 +18,12 @@ export const RowMolecule = molecule(() => {
   use(RowScope);
   const store = getDefaultStore();
   const devicePixelRatioAtom = use(DevicePixelRatioMolecule);
-  const { chartDataAtom } = use(ColMolecule);
+  const {
+    interval,
+    chartDataAtom,
+    offsetAtom: colOffsetAtom,
+    zoomAtom: colZoomAtom,
+  } = use(ColMolecule);
   const readyToDrawAtom = atom((get) => {
     const chartData = get(chartDataAtom);
     const canvasInfo = get(canvasInfoAtom);
@@ -29,17 +36,92 @@ export const RowMolecule = molecule(() => {
   }
   const canvasInfoAtom = atom<CanvasInfo | undefined>(undefined);
   /**
-   * focus와 zoom값을 자동으로 결정할지 여부
+   * focus와 zoom값을 자료와 화면에 맞춰 자동으로 결정할지 여부
    */
   const autoAtom = atom(true);
   /**
    * 세로축의 중심이 가져야 할 값
    */
-  const focusAtom = atom(42250);
+  const focusAtom = atom((get) => {
+    const auto = get(autoAtom);
+    const focusSource = get(focusSourceAtom);
+    const minScreenValue = get(minScreenValueAtom);
+    const maxScreenValue = get(maxScreenValueAtom);
+    if (!auto) return focusSource;
+    return lerp(maxScreenValue, minScreenValue, 0.5);
+  });
+  const focusSourceAtom = atom(0);
   /**
    * 세로축의 단위는 픽셀인데 여기에 얼마를 곱할지
    */
-  const zoomAtom = atom(1);
+  const zoomAtom = atom((get) => {
+    const auto = get(autoAtom);
+    const canvasInfo = get(canvasInfoAtom);
+    const zoomSource = get(zoomSourceAtom);
+    const minScreenValue = get(minScreenValueAtom);
+    const maxScreenValue = get(maxScreenValueAtom);
+    if (!auto || !canvasInfo) return zoomSource;
+    const { height: canvasHeight } = canvasInfo;
+    const dataHeight = maxScreenValue - minScreenValue;
+    return (canvasHeight * 0.6) / dataHeight;
+  });
+  const zoomSourceAtom = atom(1);
+  const minScreenValueAtom = atom((get) => {
+    const reduceInnerData = get(reduceInnerDataAtom);
+    return reduceInnerData(
+      (prev, { low }) => (prev < low ? prev : low),
+      Infinity
+    );
+  });
+  const maxScreenValueAtom = atom((get) => {
+    const reduceInnerData = get(reduceInnerDataAtom);
+    return reduceInnerData(
+      (prev, { high }) => (prev > high ? prev : high),
+      -Infinity
+    );
+  });
+  const toTimestampAtom = atom((get) => {
+    const chartData = get(chartDataAtom);
+    const canvasInfo = get(canvasInfoAtom);
+    const offset = get(colOffsetAtom);
+    const zoom = get(colZoomAtom);
+    return function toTimestamp(screenX: number): number {
+      const maxTimestamp = chartData?.maxTimestamp || 0;
+      const width = canvasInfo?.width || 0;
+      return maxTimestamp + offset - (screenX - width) / -zoom;
+    };
+  });
+  const minScreenTimestampAtom = atom((get) => {
+    const toTimestamp = get(toTimestampAtom);
+    return Math.ceil(toTimestamp(0) / interval) * interval;
+  });
+  const maxScreenTimestampAtom = atom((get) => {
+    const toTimestamp = get(toTimestampAtom);
+    const canvasInfo = get(canvasInfoAtom);
+    const width = canvasInfo?.width || 0;
+    return Math.ceil(toTimestamp(width) / interval) * interval;
+  });
+  const reduceInnerDataAtom = atom((get) => {
+    const chartData = get(chartDataAtom);
+    const minScreenTimestamp = get(minScreenTimestampAtom);
+    const maxScreenTimestamp = get(maxScreenTimestampAtom);
+    const start = Math.round(minScreenTimestamp / interval);
+    const end = Math.round(maxScreenTimestamp / interval);
+    return function reduceInnerData<T>(
+      fn: (prev: T, curr: Data) => T,
+      initial: T
+    ): T {
+      let acc = initial;
+      if (!chartData) return acc;
+      for (let i = start; i < end; ++i) {
+        const timestamp = i * interval;
+        const data = chartData.raw[timestamp];
+        if (!data) continue;
+        acc = fn(acc, data);
+      }
+      return acc;
+    };
+  });
   let rafId: number | null = null;
   const drawFns: (DrawFn | undefined)[] = [];
   const clearDrawFns = () => void (drawFns.length = 0);
@@ -72,7 +154,12 @@ export const RowMolecule = molecule(() => {
     canvasInfoAtom,
     autoAtom,
     focusAtom,
+    focusSourceAtom,
     zoomAtom,
+    zoomSourceAtom,
+    toTimestampAtom,
+    minScreenTimestampAtom,
+    maxScreenTimestampAtom,
     clearDrawFns,
     updateDrawFn,
   };
