@@ -1,7 +1,7 @@
 import { useAtomValue } from "jotai";
 import { useMolecule } from "bunshi/react";
 
-import { IndicatorMolecule, useDraw } from "../indicator";
+import { IndicatorMolecule, useScreenCanvas } from "../indicator";
 
 export default function Candlesticks() {
   const {
@@ -19,7 +19,7 @@ export default function Candlesticks() {
   const toScreenY = useAtomValue(toScreenYAtom);
   const minScreenTimestamp = useAtomValue(minScreenTimestampAtom);
   const maxScreenTimestamp = useAtomValue(maxScreenTimestampAtom);
-  useDraw((ctx) => {
+  useScreenCanvas((ctx) => {
     const start = Math.round(minScreenTimestamp / interval) - 1;
     const end = Math.round(maxScreenTimestamp / interval) + 1;
     for (let i = start; i < end; ++i) {

@@ -36,12 +36,12 @@ export const ColMolecule = molecule(() => {
   /**
    * 같은 Col 안의 모든 Row는 축 정보 영역의 가로폭 크기를 똑같이 가져가야 하기 때문에 가로폭 상태를 Col에서 관리함.
    */
-  const rowAxisWidthAtom = atom(1);
+  const valueAxisWidthAtom = atom(1);
   return {
     chartDataAtom,
     offsetAtom,
     zoomAtom,
-    rowAxisWidthAtom,
+    valueAxisWidthAtom,
     symbolKey,
     interval,
   };
@@ -74,7 +74,7 @@ function Col({ symbolKey, interval, ...props }: ColProps) {
           >
             {props.children}
           </div>
-          <ColAxis />
+          <TimeAxis />
         </div>
       </ScopeProvider>
     </ScopeProvider>
@@ -83,9 +83,13 @@ function Col({ symbolKey, interval, ...props }: ColProps) {
 
 export default React.memo(Col);
 
-const ColAxis = React.memo(function ColAxis() {
-  const { rowAxisWidthAtom } = useMolecule(ColMolecule);
-  const rowAxisWidth = useAtomValue(rowAxisWidthAtom);
-  const width = `${rowAxisWidth}px`;
-  return <div style={{ width }}>TODO: time axis</div>;
+const TimeAxis = React.memo(function TimeAxis() {
+  const { valueAxisWidthAtom } = useMolecule(ColMolecule);
+  const valueAxisWidth = useAtomValue(valueAxisWidthAtom);
+  return (
+    <div style={{ display: "flex", width: "100%" }}>
+      <div style={{ flexGrow: 1 }}>TODO: time axis</div>
+      <div style={{ flexBasis: `${valueAxisWidth}px` }} />
+    </div>
+  );
 });
