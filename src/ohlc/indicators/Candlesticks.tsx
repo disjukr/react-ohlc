@@ -3,7 +3,14 @@ import { useMolecule } from "bunshi/react";
 
 import { IndicatorMolecule, useScreenCanvas } from "../indicator";
 
-export default function Candlesticks() {
+export interface CandlesticksProps {
+  risingColor: string;
+  fallingColor: string;
+}
+export default function Candlesticks({
+  risingColor,
+  fallingColor,
+}: CandlesticksProps) {
   const {
     interval,
     chartDataAtom,
@@ -37,7 +44,7 @@ export default function Candlesticks() {
       const h2 = Math.max(1, Math.round(Math.abs(closeY - openY)));
       const gap = dataWidth / 4;
       const halfWidth = (dataWidth - gap) / 2;
-      ctx.fillStyle = data.open < data.close ? "green" : "red";
+      ctx.fillStyle = data.open < data.close ? risingColor : fallingColor;
       ctx.beginPath();
       ctx.rect((x - 0.5) | 0, y1, 1, h1);
       ctx.rect((x - halfWidth) | 0, y2, (dataWidth - gap) | 0, h2);
