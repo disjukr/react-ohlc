@@ -26,6 +26,7 @@ export default function MovingAverage({ length, color }: MovingAverageProps) {
     const end = Math.round(maxScreenTimestamp / interval) + 1;
     ctx.strokeStyle = color;
     ctx.beginPath();
+    let started = false;
     for (let i = start; i < end; ++i) {
       let sum = 0;
       let cnt = 0;
@@ -36,12 +37,17 @@ export default function MovingAverage({ length, color }: MovingAverageProps) {
         sum += data.close;
         ++cnt;
       }
+      if (cnt < 1) continue;
       const avg = sum / cnt;
       const timestamp = i * interval;
       const x = toScreenX(timestamp);
       const y = toScreenY(avg);
-      if (i === start) ctx.moveTo(x, y);
-      else ctx.lineTo(x, y);
+      if (started) {
+        ctx.lineTo(x, y);
+      } else {
+        started = true;
+        ctx.moveTo(x, y);
+      }
     }
     ctx.stroke();
   });
