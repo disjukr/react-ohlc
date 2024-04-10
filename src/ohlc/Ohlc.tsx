@@ -52,6 +52,7 @@ function Ohlc(props: OhlcProps) {
       style={{
         ...props.style,
         boxSizing: "border-box",
+        position: "relative",
         display: "flex",
         flexDirection: "row",
       }}

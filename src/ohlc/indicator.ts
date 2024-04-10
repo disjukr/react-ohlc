@@ -32,6 +32,7 @@ export const IndicatorMolecule = molecule(() => {
   } = use(ColMolecule);
   const {
     screenCanvasInfoAtom: rowScreenCanvasInfoAtom,
+    valueAxisCanvasInfoAtom: rowValueAxisCanvasInfoAtom,
     focusAtom: rowFocusAtom,
     zoomAtom: rowZoomAtom,
     toTimestampAtom,
@@ -46,6 +47,11 @@ export const IndicatorMolecule = molecule(() => {
   const screenCanvasInfoAtom = atom((get) => {
     const screenCanvasInfo = get(rowScreenCanvasInfoAtom);
     if (screenCanvasInfo) return screenCanvasInfo;
+    throw new Error("At the indicator level, canvas info must exist.");
+  });
+  const valueAxisCanvasInfoAtom = atom((get) => {
+    const valueAxisCanvasInfo = get(rowValueAxisCanvasInfoAtom);
+    if (valueAxisCanvasInfo) return valueAxisCanvasInfo;
     throw new Error("At the indicator level, canvas info must exist.");
   });
   const dataWidthAtom = atom((get) => {
@@ -84,6 +90,7 @@ export const IndicatorMolecule = molecule(() => {
     interval,
     chartDataAtom,
     screenCanvasInfoAtom,
+    valueAxisCanvasInfoAtom,
     dataWidthAtom,
     toScreenXAtom,
     toScreenYAtom,

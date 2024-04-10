@@ -1,6 +1,5 @@
 import React from "react";
-import { atom, useAtomValue } from "jotai";
-import { useSetAtom } from "jotai/react";
+import { atom, useAtomValue, useSetAtom } from "jotai";
 import { createScope, molecule, onUnmount, use } from "bunshi";
 import { ScopeProvider, useMolecule } from "bunshi/react";
 
@@ -14,6 +13,7 @@ import {
 import { DevicePixelRatioMolecule } from "./misc/devicePixelRatio";
 import type { Data } from "./market-data";
 import { ColMolecule } from "./Col";
+import { ValueAxis, ValueAxisContent } from "./ValueAxis";
 import { DrawOrderContext } from "./indicator";
 
 const RowScope = createScope(undefined);
@@ -173,9 +173,13 @@ function Row(props: RowProps) {
           flex: "1 0 0",
           display: "flex",
           flexDirection: "row",
+          justifyContent: "stretch",
         }}
       >
-        <RowLayers>{props.children}</RowLayers>
+        <RowLayers>
+          <ValueAxisContent />
+          {props.children as React.ReactElement}
+        </RowLayers>
         <ValueAxis />
       </div>
     </ScopeProvider>
@@ -218,20 +222,5 @@ const RowCanvasLayer = React.memo(function RowCanvasLayer() {
     <Layer>
       <canvas ref={canvasRef} style={{ width: "100%", height: "100%" }} />
     </Layer>
-  );
-});
-
-const ValueAxis = React.memo(function ValueAxis() {
-  const { valueAxisWidthAtom } = useMolecule(ColMolecule);
-  const { valueAxisCanvasInfoAtom } = useMolecule(RowMolecule);
-  const valueAxisWidth = useAtomValue(valueAxisWidthAtom);
-  const setCanvasInfo = useSetAtom(valueAxisCanvasInfoAtom);
-  const flexBasis = `${valueAxisWidth}px`;
-  const canvasRef = React.useRef<HTMLCanvasElement>(null);
-  useSetCanvasInfo({ setCanvasInfo, canvasRef });
-  return (
-    <div style={{ flexBasis }}>
-      <canvas ref={canvasRef} style={{ width: "100%", height: "100%" }} />
-    </div>
   );
 });

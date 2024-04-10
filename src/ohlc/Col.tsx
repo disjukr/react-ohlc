@@ -1,5 +1,6 @@
 import React from "react";
 import { atom } from "jotai";
+import { RESET } from "jotai/utils";
 import { createScope, molecule, use } from "bunshi";
 import { ScopeProvider, useMolecule } from "bunshi/react";
 
@@ -37,13 +38,22 @@ export const ColMolecule = molecule(() => {
    * 같은 Col 안의 모든 Row는 축 정보 영역의 가로폭 크기를 똑같이 가져가야 하기 때문에 가로폭 상태를 Col에서 관리함.
    */
   const valueAxisWidthAtom = atom(1);
+  const valueAxisWidthSetterAtom = atom(
+    null,
+    (get, set, newValue: number | typeof RESET) => {
+      const oldValue = get(valueAxisWidthAtom);
+      if (newValue === RESET) set(valueAxisWidthAtom, valueAxisWidthAtom.init);
+      else if (newValue > oldValue) set(valueAxisWidthAtom, newValue);
+    }
+  );
   return {
+    symbolKey,
+    interval,
     chartDataAtom,
     offsetAtom,
     zoomAtom,
     valueAxisWidthAtom,
-    symbolKey,
-    interval,
+    valueAxisWidthSetterAtom,
   };
 });
 
