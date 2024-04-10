@@ -1,4 +1,5 @@
 import type React from "react";
+import { flushSync } from "react-dom";
 import { getDefaultStore, type PrimitiveAtom } from "jotai";
 import useResizeObserver from "@react-hook/resize-observer";
 
@@ -23,7 +24,7 @@ export function useSetCanvasInfo({
   useResizeObserver(canvasRef, ({ contentRect: { width, height } }) => {
     if (!canvasRef.current) return;
     const canvas = canvasRef.current;
-    setCanvasInfo({ canvas, width, height });
+    flushSync(() => setCanvasInfo({ canvas, width, height }));
   });
 }
 
