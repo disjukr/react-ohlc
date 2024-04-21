@@ -14,7 +14,7 @@ import { DevicePixelRatioMolecule } from "./misc/devicePixelRatio";
 import type { Data } from "./market-data";
 import { OhlcScope } from "./Ohlc";
 import { ColMolecule } from "./Col";
-import { ValueAxis, ValueAxisContent } from "./ValueAxis";
+import { ValueAxis, ValueAxisContent, ValueAxisScope } from "./ValueAxis";
 import { DrawOrderContext } from "./indicator";
 
 const RowScope = createScope(undefined);
@@ -165,9 +165,10 @@ export const RowMolecule = molecule(() => {
 });
 
 export interface RowProps extends React.HTMLAttributes<HTMLDivElement> {
+  formatValue?: (value: number, interval: number) => string;
   children?: React.ReactElement | React.ReactElement[];
 }
-function Row(props: RowProps) {
+function Row({ formatValue = String, children, ...props }: RowProps) {
   return (
     <ScopeProvider scope={RowScope} uniqueValue>
       <div
@@ -181,8 +182,10 @@ function Row(props: RowProps) {
         }}
       >
         <RowLayers>
-          <ValueAxisContent />
-          {props.children as React.ReactElement}
+          <ScopeProvider scope={ValueAxisScope} value={formatValue}>
+            <ValueAxisContent />
+          </ScopeProvider>
+          {children as React.ReactElement}
         </RowLayers>
         <ValueAxis />
       </div>

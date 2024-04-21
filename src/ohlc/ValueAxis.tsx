@@ -1,6 +1,6 @@
 import React from "react";
 import { atom, useAtomValue, useSetAtom } from "jotai";
-import { molecule, onMount, use } from "bunshi";
+import { createScope, molecule, onMount, use } from "bunshi";
 import { useMolecule } from "bunshi/react";
 
 import { useSetCanvasInfo } from "./misc/canvas";
@@ -13,9 +13,12 @@ import { IndicatorMolecule, useValueAxisCanvas } from "./indicator";
 const valueAxisFontSize = 10;
 const valueAxisFont = `${valueAxisFontSize} sans-serif`;
 
+export type FormatValueFn = (value: number, interval: number) => string;
+export const ValueAxisScope = createScope<FormatValueFn>(String);
 export const ValueAxisMolecule = molecule(() => {
   const store = use(OhlcScope);
   const { valueAxisWidthSetterAtom } = use(ColMolecule);
+  const formatValue = use(ValueAxisScope);
   const { toValueAtom, screenCanvasInfoAtom } = use(IndicatorMolecule);
   const screenHeightAtom = atom((get) => {
     const screenCanvasInfo = get(screenCanvasInfoAtom);
@@ -43,11 +46,19 @@ export const ValueAxisMolecule = molecule(() => {
     const labelInterval = get(labelIntervalAtom);
     return getAxisLabelValues(bottomValue, topValue, labelInterval);
   });
-  const maxLabelWidthAtom = atom((get) => {
+  const labelValueAndTextsAtom = atom((get) => {
     const labelValues = get(labelValuesAtom);
+    const labelInterval = get(labelIntervalAtom);
+    return labelValues.map((value) => ({
+      value,
+      text: formatValue(value, labelInterval),
+    }));
+  });
+  const maxLabelWidthAtom = atom((get) => {
+    const labelValueAndTexts = get(labelValueAndTextsAtom);
     return Math.max(
-      ...labelValues.map(
-        (value) => measureText(valueAxisFont, String(value)).width
+      ...labelValueAndTexts.map(
+        ({ text }) => measureText(valueAxisFont, text).width
       )
     );
   });
@@ -60,11 +71,13 @@ export const ValueAxisMolecule = molecule(() => {
     }
   });
   return {
+    formatValue,
     screenHeightAtom,
     topValueAtom,
     bottomValueAtom,
     labelIntervalAtom,
     labelValuesAtom,
+    labelValueAndTextsAtom,
   };
 });
 
@@ -88,15 +101,15 @@ const ValueAxisInternal = function ValueAxisInternal() {
 };
 
 export function ValueAxisContent() {
-  const { labelValuesAtom } = useMolecule(ValueAxisMolecule);
+  const { labelValueAndTextsAtom } = useMolecule(ValueAxisMolecule);
   const { toScreenYAtom } = useMolecule(IndicatorMolecule);
-  const labelValues = useAtomValue(labelValuesAtom);
+  const labelValueAndTexts = useAtomValue(labelValueAndTextsAtom);
   const toScreenY = useAtomValue(toScreenYAtom);
   useValueAxisCanvas((ctx) => {
     ctx.font = valueAxisFont;
-    for (const labelValue of labelValues) {
-      const y = toScreenY(labelValue);
-      ctx.fillText(String(labelValue), 0, y);
+    for (const { value, text } of labelValueAndTexts) {
+      const y = toScreenY(value);
+      ctx.fillText(text, 0, y);
     }
   });
   return null;
