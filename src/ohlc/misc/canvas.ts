@@ -1,7 +1,8 @@
 import type React from "react";
 import { flushSync } from "react-dom";
-import { getDefaultStore, type PrimitiveAtom } from "jotai";
+import { type PrimitiveAtom } from "jotai";
 import useResizeObserver from "@react-hook/resize-observer";
+import { Store } from "../Ohlc";
 
 export interface CanvasInfo {
   canvas: HTMLCanvasElement;
@@ -34,14 +35,15 @@ export interface CanvasFns {
   dispose: () => void;
 }
 export interface CreateCanvasFnsConfig {
+  store: Store;
   canvasInfoAtom: PrimitiveAtom<CanvasInfo | undefined>;
   devicePixelRatioAtom: PrimitiveAtom<number>;
 }
 export function createCanvasFns({
+  store,
   canvasInfoAtom,
   devicePixelRatioAtom,
 }: CreateCanvasFnsConfig): CanvasFns {
-  const store = getDefaultStore();
   let rafId: number | null = null;
   const drawFns: (DrawFn | undefined)[] = [];
   const clearDrawFns = () => void (drawFns.length = 0);

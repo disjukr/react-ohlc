@@ -11,10 +11,11 @@ import {
 } from "./market-data";
 import type { ColProps } from "./Col";
 
-export const OhlcScope = createScope(undefined);
+export type Store = ReturnType<typeof getDefaultStore>;
+
+export const OhlcScope = createScope(getDefaultStore());
 export const OhlcMolecule = molecule(() => {
-  use(OhlcScope);
-  const store = getDefaultStore();
+  const store = use(OhlcScope);
   const symbolDataAtomsAtom = atom<SymbolDataAtoms>({});
   function upsertSymbolData(symbolKey: string, interval: number, raw: RawData) {
     const symbolDataAtoms = store.get(symbolDataAtomsAtom);

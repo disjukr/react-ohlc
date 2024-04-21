@@ -1,10 +1,11 @@
 import React from "react";
-import { atom, getDefaultStore, useAtomValue, useSetAtom } from "jotai";
+import { atom, useAtomValue, useSetAtom } from "jotai";
 import { molecule, onMount, use } from "bunshi";
 import { useMolecule } from "bunshi/react";
 
 import { useSetCanvasInfo } from "./misc/canvas";
 import measureText from "./misc/measureText";
+import { OhlcScope } from "./Ohlc";
 import { ColMolecule } from "./Col";
 import { RowMolecule } from "./Row";
 import { IndicatorMolecule, useValueAxisCanvas } from "./indicator";
@@ -13,6 +14,7 @@ const valueAxisFontSize = 10;
 const valueAxisFont = `${valueAxisFontSize} sans-serif`;
 
 export const ValueAxisMolecule = molecule(() => {
+  const store = use(OhlcScope);
   const { valueAxisWidthSetterAtom } = use(ColMolecule);
   const { toValueAtom, screenCanvasInfoAtom } = use(IndicatorMolecule);
   const screenHeightAtom = atom((get) => {
@@ -50,7 +52,6 @@ export const ValueAxisMolecule = molecule(() => {
     );
   });
   onMount(() => {
-    const store = getDefaultStore();
     onsub();
     return store.sub(maxLabelWidthAtom, onsub);
     function onsub() {

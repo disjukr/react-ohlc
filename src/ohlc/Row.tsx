@@ -12,6 +12,7 @@ import {
 } from "./misc/canvas";
 import { DevicePixelRatioMolecule } from "./misc/devicePixelRatio";
 import type { Data } from "./market-data";
+import { OhlcScope } from "./Ohlc";
 import { ColMolecule } from "./Col";
 import { ValueAxis, ValueAxisContent } from "./ValueAxis";
 import { DrawOrderContext } from "./indicator";
@@ -19,6 +20,7 @@ import { DrawOrderContext } from "./indicator";
 const RowScope = createScope(undefined);
 
 export const RowMolecule = molecule(() => {
+  const store = use(OhlcScope);
   use(RowScope);
   const devicePixelRatioAtom = use(DevicePixelRatioMolecule);
   const {
@@ -39,6 +41,7 @@ export const RowMolecule = molecule(() => {
     updateDrawFn: updateScreenDrawFn,
     dispose: disposeScreenCanvasFns,
   } = createCanvasFns({
+    store,
     canvasInfoAtom: screenCanvasInfoAtom,
     devicePixelRatioAtom,
   });
@@ -47,6 +50,7 @@ export const RowMolecule = molecule(() => {
     updateDrawFn: updateValueAxisDrawFn,
     dispose: disposeValueAxisCanvasFns,
   } = createCanvasFns({
+    store,
     canvasInfoAtom: valueAxisCanvasInfoAtom,
     devicePixelRatioAtom,
   });
