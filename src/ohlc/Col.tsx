@@ -1,11 +1,12 @@
 import React from "react";
-import { atom } from "jotai";
+import { flushSync } from "react-dom";
+import { atom, useAtomValue, useSetAtom } from "jotai";
 import { RESET } from "jotai/utils";
 import { createScope, molecule, use } from "bunshi";
 import { ScopeProvider, useMolecule } from "bunshi/react";
+import useResizeObserver from "@react-hook/resize-observer";
 
 import type { RowProps } from "./Row";
-import { useAtomValue } from "jotai/react";
 import { OhlcMolecule } from "./Ohlc";
 
 const SymbolKeyScope = createScope("");
@@ -25,6 +26,7 @@ export const ColMolecule = molecule(() => {
     const chartData = get(chartDataAtom);
     return chartData;
   });
+  const colWidthAtom = atom<number | undefined>(undefined);
   /**
    * 가로축의 가장 오른쪽은 최신 데이터의 시각이 되도록 할 건데 여기서 얼마나 조정해서 볼지.
    * 단위는 밀리초.
@@ -46,14 +48,34 @@ export const ColMolecule = molecule(() => {
       else if (newValue > oldValue) set(valueAxisWidthAtom, newValue);
     }
   );
+  const chartWidthAtom = atom((get) => {
+    const colWidth = get(colWidthAtom);
+    const valueAxisWidth = get(valueAxisWidthAtom);
+    if (!colWidth) return;
+    return colWidth - valueAxisWidth;
+  });
+  const toTimestampAtom = atom((get) => {
+    const chartData = get(chartDataAtom);
+    const chartWidth = get(chartWidthAtom);
+    const offset = get(offsetAtom);
+    const zoom = get(zoomAtom);
+    return function toTimestamp(screenX: number): number {
+      const maxTimestamp = chartData?.maxTimestamp || 0;
+      const width = chartWidth || 0;
+      return maxTimestamp + offset - (screenX - width) / -zoom;
+    };
+  });
   return {
     symbolKey,
     interval,
     chartDataAtom,
+    colWidthAtom,
     offsetAtom,
     zoomAtom,
     valueAxisWidthAtom,
     valueAxisWidthSetterAtom,
+    chartWidthAtom,
+    toTimestampAtom,
   };
 });
 
@@ -66,32 +88,45 @@ function Col({ symbolKey, interval, ...props }: ColProps) {
   return (
     <ScopeProvider scope={SymbolKeyScope} value={symbolKey}>
       <ScopeProvider scope={IntervalScope} value={interval}>
-        <div
-          {...props}
-          style={{
-            ...props.style,
-            flex: "1 0 0",
-            display: "flex",
-            flexDirection: "column",
-          }}
-        >
-          <div
-            style={{
-              flex: "1 0 0",
-              display: "flex",
-              flexDirection: "column",
-            }}
-          >
-            {props.children}
-          </div>
-          <TimeAxis />
-        </div>
+        <ColInternal {...props} />
       </ScopeProvider>
     </ScopeProvider>
   );
 }
 
 export default React.memo(Col);
+
+function ColInternal(props: React.HTMLAttributes<HTMLDivElement>) {
+  const colDivRef = React.useRef<HTMLDivElement>(null);
+  const { colWidthAtom } = useMolecule(ColMolecule);
+  const setColWidth = useSetAtom(colWidthAtom);
+  useResizeObserver(colDivRef, ({ contentRect: { width } }) => {
+    flushSync(() => setColWidth(width));
+  });
+  return (
+    <div
+      {...props}
+      ref={colDivRef}
+      style={{
+        ...props.style,
+        flex: "1 0 0",
+        display: "flex",
+        flexDirection: "column",
+      }}
+    >
+      <div
+        style={{
+          flex: "1 0 0",
+          display: "flex",
+          flexDirection: "column",
+        }}
+      >
+        {props.children}
+      </div>
+      <TimeAxis />
+    </div>
+  );
+}
 
 const TimeAxis = React.memo(function TimeAxis() {
   const { valueAxisWidthAtom } = useMolecule(ColMolecule);
