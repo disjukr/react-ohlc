@@ -24,20 +24,20 @@ export function useValueAxisCanvas(fn: DrawFn) {
 
 export const IndicatorMolecule = molecule(() => {
   const {
-    chartDataAtom: colChartDataAtom,
-    offsetAtom: colOffsetAtom,
-    zoomAtom: colZoomAtom,
     symbolKey,
     interval,
+    chartDataAtom: colChartDataAtom,
+    zoomAtom: colZoomAtom,
+    toScreenXAtom,
+    toTimestampAtom,
+    minScreenTimestampAtom,
+    maxScreenTimestampAtom,
   } = use(ColMolecule);
   const {
     screenCanvasInfoAtom: rowScreenCanvasInfoAtom,
     valueAxisCanvasInfoAtom: rowValueAxisCanvasInfoAtom,
     focusAtom: rowFocusAtom,
     zoomAtom: rowZoomAtom,
-    toTimestampAtom,
-    minScreenTimestampAtom,
-    maxScreenTimestampAtom,
   } = use(RowMolecule);
   const chartDataAtom = atom((get) => {
     const chartData = get(colChartDataAtom);
@@ -57,15 +57,6 @@ export const IndicatorMolecule = molecule(() => {
   const dataWidthAtom = atom((get) => {
     const zoom = get(colZoomAtom);
     return interval * zoom;
-  });
-  const toScreenXAtom = atom((get) => {
-    const chartData = get(chartDataAtom);
-    const { width } = get(screenCanvasInfoAtom);
-    const offset = get(colOffsetAtom);
-    const zoom = get(colZoomAtom);
-    return function toScreenX(timestamp: number): number {
-      return (chartData.maxTimestamp + offset - timestamp) * -zoom + width;
-    };
   });
   const toScreenYAtom = atom((get) => {
     const { height } = get(screenCanvasInfoAtom);

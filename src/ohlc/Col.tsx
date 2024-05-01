@@ -54,6 +54,17 @@ export const ColMolecule = molecule(() => {
     if (!colWidth) return;
     return colWidth - valueAxisWidth;
   });
+  const toScreenXAtom = atom((get) => {
+    const chartData = get(chartDataAtom);
+    const chartWidth = get(chartWidthAtom);
+    const offset = get(offsetAtom);
+    const zoom = get(zoomAtom);
+    if (!chartData) return () => NaN;
+    if (!chartWidth) return () => 0;
+    return function toScreenX(timestamp: number): number {
+      return (chartData.maxTimestamp + offset - timestamp) * -zoom + chartWidth;
+    };
+  });
   const toTimestampAtom = atom((get) => {
     const chartData = get(chartDataAtom);
     const chartWidth = get(chartWidthAtom);
@@ -65,6 +76,16 @@ export const ColMolecule = molecule(() => {
       return maxTimestamp + offset - (screenX - width) / -zoom;
     };
   });
+  const minScreenTimestampAtom = atom((get) => {
+    const toTimestamp = get(toTimestampAtom);
+    return Math.ceil(toTimestamp(0) / interval) * interval;
+  });
+  const maxScreenTimestampAtom = atom((get) => {
+    const toTimestamp = get(toTimestampAtom);
+    const chartWidth = get(chartWidthAtom);
+    const width = chartWidth || 0;
+    return Math.ceil(toTimestamp(width) / interval) * interval;
+  });
   return {
     symbolKey,
     interval,
@@ -75,7 +96,10 @@ export const ColMolecule = molecule(() => {
     valueAxisWidthAtom,
     valueAxisWidthSetterAtom,
     chartWidthAtom,
+    toScreenXAtom,
     toTimestampAtom,
+    minScreenTimestampAtom,
+    maxScreenTimestampAtom,
   };
 });
 

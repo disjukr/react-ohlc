@@ -23,8 +23,13 @@ export const RowMolecule = molecule(() => {
   const store = use(OhlcScope);
   use(RowScope);
   const devicePixelRatioAtom = use(DevicePixelRatioMolecule);
-  const { interval, chartDataAtom, colWidthAtom, toTimestampAtom } =
-    use(ColMolecule);
+  const {
+    interval,
+    chartDataAtom,
+    colWidthAtom,
+    minScreenTimestampAtom,
+    maxScreenTimestampAtom,
+  } = use(ColMolecule);
   const readyToDrawAtom = atom((get) => {
     const chartData = get(chartDataAtom);
     const colWidth = get(colWidthAtom);
@@ -100,16 +105,6 @@ export const RowMolecule = molecule(() => {
       -Infinity
     );
   });
-  const minScreenTimestampAtom = atom((get) => {
-    const toTimestamp = get(toTimestampAtom);
-    return Math.ceil(toTimestamp(0) / interval) * interval;
-  });
-  const maxScreenTimestampAtom = atom((get) => {
-    const toTimestamp = get(toTimestampAtom);
-    const screenCanvasInfo = get(screenCanvasInfoAtom);
-    const width = screenCanvasInfo?.width || 0;
-    return Math.ceil(toTimestamp(width) / interval) * interval;
-  });
   const reduceInnerDataAtom = atom((get) => {
     const chartData = get(chartDataAtom);
     const minScreenTimestamp = get(minScreenTimestampAtom);
@@ -138,9 +133,6 @@ export const RowMolecule = molecule(() => {
     focusSourceAtom,
     zoomAtom,
     zoomSourceAtom,
-    toTimestampAtom,
-    minScreenTimestampAtom,
-    maxScreenTimestampAtom,
     screenCanvasInfoAtom,
     valueAxisCanvasInfoAtom,
     clearScreenDrawFns,
