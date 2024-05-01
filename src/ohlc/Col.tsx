@@ -1,6 +1,6 @@
 import React from "react";
 import { flushSync } from "react-dom";
-import { atom, useAtomValue, useSetAtom } from "jotai";
+import { atom, useSetAtom } from "jotai";
 import { RESET } from "jotai/utils";
 import { createScope, molecule, use } from "bunshi";
 import { ScopeProvider, useMolecule } from "bunshi/react";
@@ -8,6 +8,7 @@ import useResizeObserver from "@react-hook/resize-observer";
 
 import type { RowProps } from "./Row";
 import { OhlcMolecule } from "./Ohlc";
+import { TimeAxis } from "./TimeAxis";
 
 const SymbolKeyScope = createScope("");
 const IntervalScope = createScope(-1);
@@ -151,14 +152,3 @@ function ColInternal(props: React.HTMLAttributes<HTMLDivElement>) {
     </div>
   );
 }
-
-const TimeAxis = React.memo(function TimeAxis() {
-  const { valueAxisWidthAtom } = useMolecule(ColMolecule);
-  const valueAxisWidth = useAtomValue(valueAxisWidthAtom);
-  return (
-    <div style={{ display: "flex", width: "100%" }}>
-      <div style={{ flexGrow: 1 }}>TODO: time axis</div>
-      <div style={{ flexBasis: `${valueAxisWidth}px` }} />
-    </div>
-  );
-});
