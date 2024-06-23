@@ -10,7 +10,7 @@
   },
   "dependencies": {
     "@react-hook/resize-observer": "^1.2.6",
-    "bunshi": "^2.1.4",
+    "bunja": "^0.0.7",
     "jotai": "^2.7.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0"

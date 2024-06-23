@@ -1,7 +1,8 @@
 import { useAtomValue } from "jotai";
-import { useMolecule } from "bunshi/react";
+import { useBunja } from "bunja";
 
-import { IndicatorMolecule, useScreenCanvas } from "../indicator";
+import { useScreenCanvas } from "../row/state";
+import { indicatorBunja } from "../indicator";
 
 export interface BollingerBandsProps {
   length: number;
@@ -26,7 +27,7 @@ export default function BollingerBands({
     toScreenYAtom,
     minScreenTimestampAtom,
     maxScreenTimestampAtom,
-  } = useMolecule(IndicatorMolecule);
+  } = useBunja(indicatorBunja);
   const chartData = useAtomValue(chartDataAtom);
   const toScreenX = useAtomValue(toScreenXAtom);
   const toScreenY = useAtomValue(toScreenYAtom);

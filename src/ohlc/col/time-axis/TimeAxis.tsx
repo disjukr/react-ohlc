@@ -1,36 +1,12 @@
 import React from "react";
-import { atom, useAtomValue } from "jotai";
-import { molecule, use } from "bunshi";
-import { useMolecule } from "bunshi/react";
+import { useAtomValue } from "jotai";
+import { useBunja } from "bunja";
 
-import { DevicePixelRatioMolecule } from "./misc/devicePixelRatio";
-import { ColMolecule } from "./Col";
+import { devicePixelRatioBunja } from "../../misc/devicePixelRatio";
+import { TimeAxisBunja, timeAxisHeight } from "./state";
 
-const timeAxisHeight = 20;
-
-export const TimeAxisMolecule = molecule(() => {
-  const { chartWidthAtom, toTimestampAtom } = use(ColMolecule);
-  const timeAxisWidthAtom = atom((get) => {
-    const chartWidth = get(chartWidthAtom);
-    return chartWidth || 0;
-  });
-  const leftTimestampAtom = atom((get) => {
-    const toTimestamp = get(toTimestampAtom);
-    return toTimestamp(0);
-  });
-  const rightTimestampAtom = atom((get) => {
-    const toTimestamp = get(toTimestampAtom);
-    const timeAxisWidth = get(timeAxisWidthAtom);
-    return toTimestamp(timeAxisWidth);
-  });
-  return {
-    timeAxisWidthAtom,
-    leftTimestampAtom,
-    rightTimestampAtom,
-  };
-});
 export const TimeAxis = React.memo(function TimeAxis() {
-  const { timeAxisWidthAtom } = useMolecule(TimeAxisMolecule);
+  const { timeAxisWidthAtom } = useBunja(TimeAxisBunja);
   const timeAxisWidth = useAtomValue(timeAxisWidthAtom);
   const canvasRef = React.useRef<HTMLCanvasElement>(null);
   const width = timeAxisWidth;
@@ -60,7 +36,7 @@ interface UseCanvasConfig {
   render: (ctx: CanvasRenderingContext2D) => void;
 }
 function useCanvas({ canvasRef, render, width, height }: UseCanvasConfig) {
-  const devicePixelRatioAtom = useMolecule(DevicePixelRatioMolecule);
+  const { devicePixelRatioAtom } = useBunja(devicePixelRatioBunja);
   const devicePixelRatio = useAtomValue(devicePixelRatioAtom);
   React.useLayoutEffect(() => {
     const canvas = canvasRef.current;

@@ -1,17 +1,17 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
-import { useMolecule } from "bunshi/react";
+import { useBunja } from "bunja";
 
-import Ohlc, { OhlcMolecule } from "./ohlc/Ohlc";
-import Col from "./ohlc/Col";
-import Row from "./ohlc/Row";
+import Ohlc, { ohlcBunja } from "./ohlc/Ohlc";
+import Col from "./ohlc/col/Col";
+import Row from "./ohlc/row/Row";
 import Candlesticks from "./ohlc/indicators/Candlesticks";
 import MovingAverage from "./ohlc/indicators/MovingAverage";
 import mockdata from "./mockdata";
 import BollingerBands from "./ohlc/indicators/BollingerBands";
 
 function App() {
-  const { upsertSymbolData } = useMolecule(OhlcMolecule);
+  const { upsertSymbolData } = useBunja(ohlcBunja);
   React.useEffect(() => upsertSymbolData("mock", 60000, mockdata), []);
   return (
     <Ohlc style={{ height: "500px", border: "1px solid black" }}>

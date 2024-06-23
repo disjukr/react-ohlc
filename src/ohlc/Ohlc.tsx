@@ -1,6 +1,6 @@
 import React from "react";
 import { atom, getDefaultStore } from "jotai";
-import { createScope, molecule, use } from "bunshi";
+import { bunja } from "bunja";
 
 import {
   type RawData,
@@ -9,13 +9,12 @@ import {
   updateChartData,
   createChartData,
 } from "./market-data";
-import type { ColProps } from "./Col";
+import type { ColProps } from "./col/Col";
 
 export type Store = ReturnType<typeof getDefaultStore>;
 
-export const OhlcScope = createScope(getDefaultStore());
-export const OhlcMolecule = molecule(() => {
-  const store = use(OhlcScope);
+export const OhlcContext = React.createContext(getDefaultStore());
+export const ohlcBunja = bunja([OhlcContext], (store) => {
   const symbolDataAtomsAtom = atom<SymbolDataAtoms>({});
   function upsertSymbolData(symbolKey: string, interval: number, raw: RawData) {
     const symbolDataAtoms = store.get(symbolDataAtomsAtom);

@@ -1,7 +1,8 @@
 import { useAtomValue } from "jotai";
-import { useMolecule } from "bunshi/react";
+import { useBunja } from "bunja";
 
-import { IndicatorMolecule, useScreenCanvas } from "../indicator";
+import { useScreenCanvas } from "../row/state";
+import { indicatorBunja } from "../indicator";
 
 export interface CandlesticksProps {
   risingColor: string;
@@ -19,7 +20,7 @@ export default function Candlesticks({
     toScreenYAtom,
     minScreenTimestampAtom,
     maxScreenTimestampAtom,
-  } = useMolecule(IndicatorMolecule);
+  } = useBunja(indicatorBunja);
   const chartData = useAtomValue(chartDataAtom);
   const dataWidth = useAtomValue(dataWidthAtom);
   const toScreenX = useAtomValue(toScreenXAtom);
