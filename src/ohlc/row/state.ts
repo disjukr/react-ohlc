@@ -1,13 +1,15 @@
 import React from "react";
 import { atom } from "jotai";
-import { bunja, Bunja, useBunja } from "bunja";
+import { bunja, Bunja } from "bunja";
+import { useBunja } from 'bunja/react';
 
 import { lerp } from "../misc/interpolation";
 import { createCanvasFns, type CanvasInfo } from "../misc/canvas";
 import { devicePixelRatioBunja } from "../misc/devicePixelRatio";
 import type { Data } from "../market-data";
-import { OhlcContext } from "../Ohlc";
+import { OhlcScope } from "../Ohlc";
 import { colBunja } from "../col/state";
+import { createScopeFromContext } from "bunja/react";
 
 export const DrawOrderContext = React.createContext(0);
 
@@ -26,18 +28,20 @@ export function useValueAxisCanvas(fn: DrawFn) {
 }
 
 export const RowContext = React.createContext(0);
+export const RowScope = createScopeFromContext(RowContext);
 
 export const rowBunja = bunja(
-  [OhlcContext, devicePixelRatioBunja, colBunja, RowContext],
-  (store, devicePixelRatioBunjaInstance, colBunjaInstance) => {
-    const { devicePixelRatioAtom } = devicePixelRatioBunjaInstance;
+  () => {
+    const store = bunja.use(OhlcScope);
+    const { devicePixelRatioAtom } = bunja.use(devicePixelRatioBunja);
     const {
       interval,
       chartDataAtom,
       colWidthAtom,
       minScreenTimestampAtom,
       maxScreenTimestampAtom,
-    } = colBunjaInstance;
+    } = bunja.use(colBunja);
+    const RowContext = bunja.use(RowScope);
     const readyToDrawAtom = atom((get) => {
       const chartData = get(chartDataAtom);
       const colWidth = get(colWidthAtom);
@@ -130,6 +134,12 @@ export const rowBunja = bunja(
         return acc;
       };
     });
+    bunja.effect(() => {
+      return () => {
+        disposeScreenCanvasFns();
+        disposeValueAxisCanvasFns();
+      };
+    });
     return {
       readyToDrawAtom,
       autoAtom,
@@ -143,12 +153,6 @@ export const rowBunja = bunja(
       updateScreenDrawFn,
       clearValueAxisDrawFns,
       updateValueAxisDrawFn,
-      [Bunja.effect]() {
-        return () => {
-          disposeScreenCanvasFns();
-          disposeValueAxisCanvasFns();
-        };
-      },
     };
   }
 );

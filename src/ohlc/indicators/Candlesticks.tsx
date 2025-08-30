@@ -1,5 +1,5 @@
 import { useAtomValue } from "jotai";
-import { useBunja } from "bunja";
+import { useBunja } from "bunja/react";
 
 import { useScreenCanvas } from "../row/state";
 import { indicatorBunja } from "../indicator";

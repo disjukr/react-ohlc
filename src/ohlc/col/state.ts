@@ -4,13 +4,18 @@ import { RESET } from "jotai/utils";
 import { bunja } from "bunja";
 
 import { ohlcBunja } from "../Ohlc";
+import { createScopeFromContext } from "bunja/react";
 
 export const SymbolKeyContext = React.createContext("");
+export const SymbolKeyScope = createScopeFromContext(SymbolKeyContext);
 export const IntervalContext = React.createContext(-1);
+export const IntervalScope = createScopeFromContext(IntervalContext);
 
 export const colBunja = bunja(
-  [SymbolKeyContext, IntervalContext, ohlcBunja],
-  (symbolKey, interval, { symbolDataAtomsAtom }) => {
+  () => {
+    const symbolKey = bunja.use(SymbolKeyScope);
+    const interval = bunja.use(IntervalScope);
+    const { symbolDataAtomsAtom } = bunja.use(ohlcBunja);
     const chartDataAtom = atom((get) => {
       const symbolDataAtoms = get(symbolDataAtomsAtom);
       const symbolDataAtom = symbolDataAtoms[symbolKey];

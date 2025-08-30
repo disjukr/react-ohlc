@@ -1,7 +1,7 @@
 import React from "react";
 import { flushSync } from "react-dom";
 import { useSetAtom } from "jotai";
-import { useBunja } from "bunja";
+import { useBunja } from "bunja/react";
 import useResizeObserver from "@react-hook/resize-observer";
 
 import type { RowProps } from "../row/Row";

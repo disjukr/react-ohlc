@@ -1,22 +1,26 @@
 import React from "react";
 import { atom } from "jotai";
-import { bunja, Bunja } from "bunja";
+import { bunja } from "bunja";
 
 import measureText from "../../misc/measureText";
-import { OhlcContext } from "../../Ohlc";
+import { OhlcScope } from "../../Ohlc";
 import { colBunja } from "../../col/state";
 import { indicatorBunja } from "../../indicator";
+import { createScopeFromContext } from "bunja/react";
 
 export const valueAxisFontSize = 10;
 export const valueAxisFont = `${valueAxisFontSize} sans-serif`;
 
 export type FormatValueFn = (value: number, interval: number) => string;
 export const ValueAxisContext = React.createContext<FormatValueFn>(String);
+export const ValueAxisScope = createScopeFromContext(ValueAxisContext);
 export const ValueAxisBunja = bunja(
-  [OhlcContext, colBunja, ValueAxisContext, indicatorBunja],
-  (store, colBunjaInstance, formatValue, indicatorBunjaInstance) => {
+  () => {
+    const store = bunja.use(OhlcScope);
+    const colBunjaInstance = bunja.use(colBunja);
+    const formatValue = bunja.use(ValueAxisScope);
+    const { toValueAtom, screenCanvasInfoAtom } = bunja.use(indicatorBunja);
     const { valueAxisWidthSetterAtom } = colBunjaInstance;
-    const { toValueAtom, screenCanvasInfoAtom } = indicatorBunjaInstance;
     const screenHeightAtom = atom((get) => {
       const screenCanvasInfo = get(screenCanvasInfoAtom);
       return screenCanvasInfo.height;
@@ -59,6 +63,14 @@ export const ValueAxisBunja = bunja(
         )
       );
     });
+    bunja.effect(() => {
+      onsub();
+      return store.sub(maxLabelWidthAtom, onsub);
+      function onsub() {
+        const maxLabelWidth = store.get(maxLabelWidthAtom);
+        store.set(valueAxisWidthSetterAtom, maxLabelWidth);
+      }
+    });
     return {
       formatValue,
       screenHeightAtom,
@@ -67,14 +79,6 @@ export const ValueAxisBunja = bunja(
       labelIntervalAtom,
       labelValuesAtom,
       labelValueAndTextsAtom,
-      [Bunja.effect]() {
-        onsub();
-        return store.sub(maxLabelWidthAtom, onsub);
-        function onsub() {
-          const maxLabelWidth = store.get(maxLabelWidthAtom);
-          store.set(valueAxisWidthSetterAtom, maxLabelWidth);
-        }
-      },
     };
   }
 );

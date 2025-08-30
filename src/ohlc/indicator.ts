@@ -5,8 +5,7 @@ import { colBunja } from "./col/state";
 import { rowBunja } from "./row/state";
 
 export const indicatorBunja = bunja(
-  [colBunja, rowBunja],
-  (colBunjaInstance, rowBunjaInstance) => {
+  () => {
     const {
       symbolKey,
       interval,
@@ -16,13 +15,13 @@ export const indicatorBunja = bunja(
       toTimestampAtom,
       minScreenTimestampAtom,
       maxScreenTimestampAtom,
-    } = colBunjaInstance;
+    } = bunja.use(colBunja)
     const {
       screenCanvasInfoAtom: rowScreenCanvasInfoAtom,
       valueAxisCanvasInfoAtom: rowValueAxisCanvasInfoAtom,
       focusAtom: rowFocusAtom,
       zoomAtom: rowZoomAtom,
-    } = rowBunjaInstance;
+    } = bunja.use(rowBunja)
     const chartDataAtom = atom((get) => {
       const chartData = get(colChartDataAtom);
       if (chartData) return chartData;

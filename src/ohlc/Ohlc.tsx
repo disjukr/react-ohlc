@@ -10,11 +10,14 @@ import {
   createChartData,
 } from "./market-data";
 import type { ColProps } from "./col/Col";
+import { createScopeFromContext } from "bunja/react";
 
 export type Store = ReturnType<typeof getDefaultStore>;
 
 export const OhlcContext = React.createContext(getDefaultStore());
-export const ohlcBunja = bunja([OhlcContext], (store) => {
+export const OhlcScope = createScopeFromContext(OhlcContext);
+export const ohlcBunja = bunja(() =>{
+  const store = bunja.use(OhlcScope);
   const symbolDataAtomsAtom = atom<SymbolDataAtoms>({});
   function upsertSymbolData(symbolKey: string, interval: number, raw: RawData) {
     const symbolDataAtoms = store.get(symbolDataAtomsAtom);

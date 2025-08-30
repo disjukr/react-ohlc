@@ -1,6 +1,6 @@
 import React from "react";
 import { useAtomValue, useSetAtom } from "jotai";
-import { useBunja } from "bunja";
+import { useBunja } from "bunja/react";
 
 import { useSetCanvasInfo } from "../../misc/canvas";
 import { colBunja } from "../../col/state";

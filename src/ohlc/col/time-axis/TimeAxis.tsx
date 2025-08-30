@@ -1,6 +1,6 @@
 import React from "react";
 import { useAtomValue } from "jotai";
-import { useBunja } from "bunja";
+import { useBunja } from "bunja/react";
 
 import { devicePixelRatioBunja } from "../../misc/devicePixelRatio";
 import { TimeAxisBunja, timeAxisHeight } from "./state";

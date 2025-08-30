@@ -1,6 +1,6 @@
 import React from "react";
 import { useAtomValue, useSetAtom } from "jotai";
-import { useBunja } from "bunja";
+import { useBunja } from "bunja/react";
 
 import useId from "../misc/useId";
 import { Layers, Layer } from "../misc/layer";

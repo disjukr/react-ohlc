@@ -5,8 +5,8 @@ import { colBunja } from "../state";
 
 export const timeAxisHeight = 20;
 
-export const TimeAxisBunja = bunja([colBunja], (colBunjaInstance) => {
-  const { chartWidthAtom, toTimestampAtom } = colBunjaInstance;
+export const TimeAxisBunja = bunja(() => {
+  const { chartWidthAtom, toTimestampAtom } = bunja.use(colBunja);
   const timeAxisWidthAtom = atom((get) => {
     const chartWidth = get(chartWidthAtom);
     return chartWidth || 0;

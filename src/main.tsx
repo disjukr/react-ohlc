@@ -1,6 +1,6 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
-import { useBunja } from "bunja";
+import { useBunja } from "bunja/react";
 
 import Ohlc, { ohlcBunja } from "./ohlc/Ohlc";
 import Col from "./ohlc/col/Col";
